@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Model Interaction</title>
+    <script>
+        async function callOllamaAPI() {
+            const prompt = document.getElementById('prompt').value;
+
+            const requestBody = {
+                model: 'deepseek-r1', // 默认使用的模型
+                prompt: prompt,
+                stream: false
+            };
+
+            try {
+                // 向后端 API 发送请求
+                const response = await fetch('/api/ollama', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                // 解析 JSON 响应
+                const data = await response.json(); // 解析为 JSON
+
+                // 从响应中提取有用的字段
+                const model = data.model || "Unknown model";
+                const createdAt = new Date(data.created_at).toLocaleString() || "Unknown time";
+                const modelResponse = data.response || "No response received.";
+                const done = data.done ? "Done" : "Not done";
+                const doneReason = data.done_reason || "Unknown reason";
+
+                // 更新前端显示
+                const result = `
+                    <strong>Model:</strong> ${model}<br>
+                    <strong>Created At:</strong> ${createdAt}<br>
+                    <strong>Response:</strong><br><pre>${modelResponse}</pre><br>
+                    <strong>Status:</strong> ${done} (Reason: ${doneReason})
+                `;
+
+                document.getElementById('response').innerHTML = result; // 更新页面显示的内容
+            } catch (error) {
+                document.getElementById('response').textContent = "Error calling the model: " + error;
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Ollama Model Interaction</h1>
+<label for="prompt">Enter your prompt:</label>
+<input type="text" id="prompt" required>
+<button onclick="callOllamaAPI()">Submit</button>
+
+<h3>Response:</h3>
+<div id="response"></div>
+</body>
+</html>
